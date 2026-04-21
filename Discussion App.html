@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Discussion Portal</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+}
+
+header{
+background:#0f766e;
+color:white;
+padding:15px;
+font-size:22px;
+}
+
+.container{
+display:flex;
+height:90vh;
+}
+
+/* LEFT PANEL */
+.left{
+width:35%;
+border-right:1px solid #ccc;
+padding:10px;
+}
+
+.question{
+padding:10px;
+border-bottom:1px solid #ddd;
+cursor:pointer;
+}
+
+.question:hover{
+background:#f0f0f0;
+}
+
+/* RIGHT PANEL */
+.right{
+flex:1;
+padding:20px;
+}
+
+input, textarea{
+width:100%;
+margin:5px 0;
+padding:6px;
+}
+
+button{
+background:#2563eb;
+color:white;
+border:none;
+padding:6px 10px;
+cursor:pointer;
+margin-top:5px;
+}
+
+.response{
+background:#eee;
+padding:8px;
+margin:5px 0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>Discussion Portal</header>
+
+<div class="container">
+
+<!-- LEFT -->
+<div class="left">
+
+<button onclick="showForm()">New Question form</button>
+<input placeholder="search questions...">
+
+<div id="questionList"></div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right" id="rightPanel">
+
+<h2>Welcome to Discussion Portal !</h2>
+
+<input id="title" placeholder="Subject">
+<textarea id="question" placeholder="Question"></textarea>
+
+<button onclick="addQuestion()">Submit</button>
+
+</div>
+
+</div>
+
+<script>
+
+let data = [] /* store all questions */
+let current = null /* selected question */
+
+/* show form */
+function showForm(){
+
+current = null
+
+document.getElementById("rightPanel").innerHTML = `
+<h2>New Question</h2>
+<input id="title" placeholder="Subject">
+<textarea id="question" placeholder="Question"></textarea>
+<button onclick="addQuestion()">Submit</button>
+`
+
+}
+
+/* add question */
+function addQuestion(){
+
+let title = document.getElementById("title").value
+let question = document.getElementById("question").value
+
+if(!title || !question) return
+
+let obj = {
+title,
+question,
+responses:[]
+}
+
+data.push(obj)
+renderList()
+showForm()
+
+}
+
+/* render left list */
+function renderList(){
+
+let list = document.getElementById("questionList")
+list.innerHTML = ""
+
+data.forEach((q,i)=>{
+
+let div = document.createElement("div")
+div.className = "question"
+div.innerHTML = `<b>${q.title}</b><br>${q.question}`
+
+div.onclick = ()=>showQuestion(i)
+
+list.appendChild(div)
+
+})
+
+}
+
+/* show selected question */
+function showQuestion(index){
+
+current = index
+let q = data[index]
+
+let html = `
+<h3>Question</h3>
+<b>${q.title}</b>
+<p>${q.question}</p>
+
+<button onclick="resolve()">Resolve</button>
+
+<h3>Responses</h3>
+`
+
+q.responses.forEach(r=>{
+html += `<div class="response"><b>${r.name}</b><br>${r.comment}</div>`
+})
+
+html += `
+<h3>Add Response</h3>
+<input id="name" placeholder="Enter Name">
+<textarea id="comment" placeholder="Enter Comment"></textarea>
+<button onclick="addResponse()">Submit</button>
+`
+
+document.getElementById("rightPanel").innerHTML = html
+
+}
+
+/* add response */
+function addResponse(){
+
+let name = document.getElementById("name").value
+let comment = document.getElementById("comment").value
+
+if(!name || !comment) return
+
+data[current].responses.push({name, comment})
+
+showQuestion(current)
+
+}
+
+/* resolve (remove question) */
+function resolve(){
+
+data.splice(current,1)
+renderList()
+showForm()
+
+}
+
+</script>
+
+</body>
+</html>
