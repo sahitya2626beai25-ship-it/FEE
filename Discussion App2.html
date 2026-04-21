@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Discussion Portal D2</title>
+
+<style>
+body{margin:0;font-family:Arial}
+header{background:#0f766e;color:white;padding:15px;font-size:22px}
+.container{display:flex;height:90vh}
+.left{width:35%;border-right:1px solid #ccc;padding:10px}
+.right{flex:1;padding:20px}
+
+.question{padding:10px;border-bottom:1px solid #ddd;cursor:pointer}
+.question:hover{background:#f0f0f0}
+
+input,textarea{width:100%;margin:5px 0;padding:6px}
+button{background:#2563eb;color:white;border:none;padding:5px 10px;margin:3px;cursor:pointer}
+
+.response{background:#eee;padding:8px;margin:5px 0}
+.vote{margin-left:10px}
+</style>
+
+</head>
+
+<body>
+
+<header>Discussion Portal</header>
+
+<div class="container">
+
+<!-- LEFT -->
+<div class="left">
+
+<button onclick="showForm()">New Question form</button>
+<input id="search" placeholder="search questions..." oninput="filterQuestions()">
+
+<div id="questionList"></div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="right" id="rightPanel">
+
+<h2>Welcome to Discussion Portal !</h2>
+<input id="title" placeholder="Subject">
+<textarea id="question" placeholder="Question"></textarea>
+<button onclick="addQuestion()">Submit</button>
+
+</div>
+
+</div>
+
+<script>
+
+let data=[]
+let current=null
+
+/* show form */
+function showForm(){
+current=null
+document.getElementById("rightPanel").innerHTML=`
+<h2>New Question</h2>
+<input id="title" placeholder="Subject">
+<textarea id="question" placeholder="Question"></textarea>
+<button onclick="addQuestion()">Submit</button>
+`
+}
+
+/* add question */
+function addQuestion(){
+let title=document.getElementById("title").value
+let question=document.getElementById("question").value
+if(!title||!question) return
+
+data.push({title,question,responses:[],votes:0})
+renderList()
+showForm()
+}
+
+/* render list sorted by votes */
+function renderList(list=data){
+
+let qList=document.getElementById("questionList")
+qList.innerHTML=""
+
+list.sort((a,b)=>b.votes-a.votes)
+
+if(list.length===0){
+qList.innerHTML="<p>No match found</p>"
+return
+}
+
+list.forEach((q,i)=>{
+
+let div=document.createElement("div")
+div.className="question"
+
+div.innerHTML=`
+<b>${q.title}</b><br>${q.question}
+<span class="vote">👍 ${q.votes}</span>
+`
+
+div.onclick=()=>showQuestion(i)
+
+qList.appendChild(div)
+
+})
+
+}
+
+/* show question */
+function showQuestion(i){
+
+current=i
+let q=data[i]
+
+let html=`
+<h3>Question</h3>
+<b>${q.title}</b>
+<p>${q.question}</p>
+
+<button onclick="voteQuestion(1)">👍</button>
+<button onclick="voteQuestion(-1)">👎</button>
+<button onclick="resolve()">Resolve</button>
+
+<h3>Responses</h3>
+`
+
+q.responses.sort((a,b)=>b.votes-a.votes)
+
+q.responses.forEach((r,ri)=>{
+html+=`
+<div class="response">
+<b>${r.name}</b><br>${r.comment}
+<br>
+<button onclick="voteResponse(${ri},1)">👍</button>
+<button onclick="voteResponse(${ri},-1)">👎</button>
+<span> ${r.votes}</span>
+</div>`
+})
+
+html+=`
+<h3>Add Response</h3>
+<input id="name" placeholder="Enter Name">
+<textarea id="comment" placeholder="Enter Comment"></textarea>
+<button onclick="addResponse()">Submit</button>
+`
+
+document.getElementById("rightPanel").innerHTML=html
+
+}
+
+/* add response */
+function addResponse(){
+
+let name=document.getElementById("name").value
+let comment=document.getElementById("comment").value
+
+if(!name||!comment) return
+
+data[current].responses.push({name,comment,votes:0})
+
+showQuestion(current)
+}
+
+/* vote question */
+function voteQuestion(v){
+data[current].votes+=v
+renderList()
+showQuestion(current)
+}
+
+/* vote response */
+function voteResponse(i,v){
+data[current].responses[i].votes+=v
+showQuestion(current)
+}
+
+/* resolve */
+function resolve(){
+data.splice(current,1)
+renderList()
+showForm()
+}
+
+/* search filter */
+function filterQuestions(){
+
+let term=document.getElementById("search").value.toLowerCase()
+
+if(term===""){
+renderList()
+return
+}
+
+let filtered=data.filter(q =>
+q.title.toLowerCase().includes(term) ||
+q.question.toLowerCase().includes(term)
+)
+
+renderList(filtered)
+
+}
+
+renderList()
+
+</script>
+
+</body>
+</html>
