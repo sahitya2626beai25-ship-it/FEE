@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ToDo App (Storage)</title>
+
+<style>
+body{
+font-family:Arial;
+display:flex;
+height:100vh;
+margin:0;
+}
+
+.left,.right{
+flex:1;
+padding:20px;
+}
+
+.left{background:#f5f5f5;}
+
+.task{
+display:flex;
+justify-content:space-between;
+margin:8px 0;
+}
+
+.done{
+text-decoration:line-through;
+}
+</style>
+</head>
+
+<body>
+
+<div class="left">
+<h2>TASK LIST</h2>
+<div id="taskList"></div>
+</div>
+
+<div class="right">
+<h2>I need to...</h2>
+<textarea id="taskInput"></textarea>
+</div>
+
+<script>
+
+let tasks = JSON.parse(localStorage.getItem("tasks")) || []
+
+const list = document.getElementById("taskList")
+const input = document.getElementById("taskInput")
+
+/* render tasks */
+function render(){
+
+list.innerHTML = ""
+
+tasks.forEach((t,i)=>{
+
+let div = document.createElement("div")
+div.className = "task"
+
+let span = document.createElement("span")
+span.innerText = t.text
+if(t.done) span.classList.add("done")
+
+let check = document.createElement("input")
+check.type = "checkbox"
+check.checked = t.done
+
+check.onclick = ()=>{
+t.done = !t.done
+save()
+}
+
+let edit = document.createElement("button")
+edit.innerText = "✏️"
+edit.onclick = ()=>{
+let newText = prompt("Edit task", t.text)
+if(newText){
+t.text = newText
+save()
+}
+}
+
+let del = document.createElement("button")
+del.innerText = "x"
+del.onclick = ()=>{
+tasks.splice(i,1)
+save()
+}
+
+div.append(span, check, edit, del)
+list.appendChild(div)
+
+})
+
+}
+
+/* save to storage */
+function save(){
+localStorage.setItem("tasks", JSON.stringify(tasks))
+render()
+}
+
+/* add task */
+input.addEventListener("keypress", e=>{
+
+if(e.key === "Enter"){
+
+e.preventDefault()
+
+let text = input.value
+if(text === "") return
+
+tasks.push({text:text, done:false})
+input.value = ""
+
+save()
+
+}
+
+})
+
+render()
+
+</script>
+
+</body>
+</html>
